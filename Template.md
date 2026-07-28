@@ -5,6 +5,42 @@
 </div>
 
 ```cpp
+
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+using u64 = unsigned long long;
+
+#define req(i, a, n) for (int i = a; i <= n; ++i)
+#define rep(i,a,n) for(int i = a; i >= n; --i)
+#define all(a) a.begin(), a.end()
+#define rall(a) a.rbegin(), a.rend()
+#define pb push_back
+#define pii pair<int, int>
+//#define int long long
+
+const int mod=998244353,MOD=1e9+7,N=1e5+1,INF=1e18;
+int dx[]={0,1,0,-1},dy[]={1,0,-1,0};
+
+void solve() {
+    
+}
+
+signed main() {
+    #ifndef ONLINE_JUDGE
+        freopen("in.txt", "r", stdin);
+    #endif
+    ios::sync_with_stdio(0);
+    cin.tie(0), cout.tie(0);
+    int t = 1;
+    //cin >> t;
+    while (t--)
+        solve();
+    return 0;
+}
+
+//开火车
+
 int dist[N];
 void bfs(int s){
     memset(dist,-1,sizeof(dist));
@@ -48,24 +84,27 @@ int bfs1(int sx,int sy,int ex,int ey){
     }
     return -1;
 }
-//网格最短路
+//01BFS(网格最短路)
+int dist2[N][N];
 int bfs01(int sx,int sy){
+    memset(dist2,0x3f,sizeof(dist2));
     deque<pii> q;
-    dist[sx][sy]=0;
+    dist2[sx][sy]=0;
     q.push_front({sx,sy});
     while(q.size()){
         auto [x,y]=q.front();q.pop_front();
         req(i,0,3){
             int nx=x+dx[i],ny=y+dy[i];
             if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
-            int w=(i==1)?1:0;
-            if(dist[nx][ny]>dist[x][y]+w){//松弛
-                dist[nx][ny]=dist[x][y]+w;
+            int w=(g[nx][ny]=='#')?1:0;//障碍物权重为1，否则为0
+            if(dist2[nx][ny]>dist2[x][y]+w){//松弛
+                dist2[nx][ny]=dist2[x][y]+w;
                 if(w==0) q.push_front({nx,ny});
                 else q.push_back({nx,ny});
             }
         }
     }
+    return dist2[n][m];//返回终点距离
 }
 int d1[N][N],d2[N][N];
 int bibfs(int sx,int sy,int ex,int ey){
@@ -84,6 +123,7 @@ int bibfs(int sx,int sy,int ex,int ey){
                 if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
                 if(d1[nx][ny]==-1){
                     d1[nx][ny]=d1[x][y]+1;
+                    q1.push({nx,ny});
                 }
                 if(d2[nx][ny]!=-1){
                     return d1[nx][ny]+d2[nx][ny];
@@ -96,6 +136,7 @@ int bibfs(int sx,int sy,int ex,int ey){
                 if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
                 if(d2[nx][ny]==-1){
                     d2[nx][ny]=d2[x][y]+1;
+                    q2.push({nx,ny});
                 }
                 if(d1[nx][ny]!=-1){
                     return d1[nx][ny]+d2[nx][ny];
@@ -107,7 +148,7 @@ int bibfs(int sx,int sy,int ex,int ey){
 }
 //双向BFS
 const long long INF=1e18;
-void dij(int s,vector<int> pre){
+void dij(int s,vector<int>& pre){
     fill(dist,dist+N,INF);
     dist[s]=0;
     priority_queue<pii,vector<pii>,greater<>> pq;
@@ -127,10 +168,8 @@ void dij(int s,vector<int> pre){
 
 void road(int s,int e,vector<int>& pre){
     vector<int> ans;
-    int cur=e;
-    while(cur!=s){
-        ans.pb(pre[cur]);
-        cur=pre[cur];
+    for(int cur=e;cur!=s;cur=pre[cur]){
+        ans.pb(cur);
     }
     ans.pb(s);
     reverse(all(ans));
@@ -138,7 +177,7 @@ void road(int s,int e,vector<int>& pre){
 }
 //带路径回溯Dij
 bool spfa(int s){
-    vector<i64> dist(n+1,INF);
+    vector<ll> dist(n+1,INF);
     vector<int> cnt(n+1,0);//入队次数
     vector<bool> inq(n+1,0);//判断要不要入队
     queue<int> q;
@@ -201,7 +240,7 @@ int find(int x){return fa[x]==x?x:fa[x]=find(fa[x]);}
 void unite(int a,int b){fa[find(a)]=find(b);}
 //并查集ez版
 
-int dfn[N],low[N],timer,cnt;
+int dfn[N],low[N],timer,cnt,scc[N];
 stack<int> st;
 bool in[N];
 void tarjan(int u){
@@ -238,10 +277,10 @@ bool Khan(vector<int>& topo){
             if(--in[v]==0) q.push(v);
         }
     }
-    if(topo.size()<n) return 1;
-    else return 0;
+    return topo.size()<n;//有环返回true
 }
 
+int vis[N];
 void dfs(int u){
     vis[u]=1;
     for(int v:g[u]){
@@ -268,7 +307,7 @@ void dfs(int depth){
 }
 
 //树上遍历
-void DfsTree(int u,int fa){
+void dfsTree(int u,int fa){
     for(int v:g[u]){
         if(v!=fa) dfsTree(v,u);
     }
@@ -279,11 +318,11 @@ int arr[N],n;
 vector<int> cur;
 void DfsSubset(int idx){
     if(idx==n){
-        for(int x:cur) cout<<x<<((i==n-1)?'\n':" ");
+        for(int j=0;j<(int)cur.size();++j) cout<<cur[j]<<(j==(int)cur.size()-1?'\n':' ');
         return;
     }
     DfsSubset(idx+1);//不选
-    cur.pb(arr[idx])//选
+    cur.pb(arr[idx]);//选
     DfsSubset(idx+1);
     cur.pop_back();//回溯
 }
@@ -295,8 +334,9 @@ struct ST{
         req(i,2,n) lg[i]=lg[i>>1]+1;
         t[0]=a;
         for(int k=1;(1<<k)<=n;++k){
-            for(int i=0;i+(i<<k)-1<n;++i)
+            for(int i=0;i+(1<<k)-1<n;++i)
                 t[k][i]=min(t[k-1][i],t[k-1][i+(1<<(k-1))]);
+        }
     }
     int query(int l,int r){
         int k=lg[r-l+1];
@@ -304,7 +344,7 @@ struct ST{
     }
 };
 ST st(a);
-int ans=st.query(1,5);//查询min
+int ans=st.query(0,4);//查询min(0-based)
 //ST表
 
 struct TreeNode{
@@ -325,12 +365,12 @@ struct BIT{
         for(;i>0;i-=i&-i) s+=t[i];
         return s;
     }
-    ll query(int l,int r) return query(r)-query(l-1);
-}
+    ll query(int l,int r){ return query(r)-query(l-1); }
+};
 //树状数组
 BIT bit(n);
-bit.update(3,5)//位置3 +5
-ll ans=bit.query(2,4)//查询2，4区间和
+bit.update(3,5);//位置3 +5
+ll ans=bit.query(2,4);//查询2，4区间和
 
 struct SegTree{
     int n;
@@ -361,7 +401,7 @@ struct SegTree{
         return query(L,R,o*2,l,mid)+query(L,R,o*2+1,mid+1,r);
      }
 private:
-    void pushup(int o) t[o].sum=t[o*2].sum+t[o*2+1].sum;
+    void pushup(int o){ t[o].sum=t[o*2].sum+t[o*2+1].sum; }
     void pushdown(int o,int l,int r){
         if(!t[o].lazy) return;
         int mid=(l+r)>>1;
@@ -375,12 +415,12 @@ private:
     }
     void build(int o,int l,int r,const vector<ll>& arr){
         if(l==r){
-            t[o].sum=arr[l];
+            t[o].sum=arr[l-1];
             return;
         }
         int mid=(l+r)>>1;
         build(o*2,l,mid,arr);
-        build(o*2,mid+1,r,arr);
+        build(o*2+1,mid+1,r,arr);
         pushup(o);
     }
 };
@@ -391,14 +431,14 @@ seg.update(1,5,3);
 ll ans=seg.query(2,4);
 
 //多元素优先队列
-auto type=tuple<int,int>;
-priority_queue<type,vector<type>,Compare> pq;
 struct Compare{
     bool operator()(const tuple<int,int>& a,const tuple<int,int>& b){
-        if(get<0>(a)<get<0>(b)) return get<0>(a) < get<0>(b);
+        if(get<0>(a)!=get<0>(b)) return get<0>(a) < get<0>(b);
         return get<1>(a) > get<1>(b);
     }
 };
+auto type=tuple<int,int>;
+priority_queue<type,vector<type>,Compare> pq;
 
 int l=1,r=n,ans=n;
 while(l<=r){
@@ -412,7 +452,7 @@ int pos=lower_bound(all(a),x)-a.begin();//第一个>=x的元素的下标
 
 vector<int> color(n,-1);
 bool bio=1;
-fuction<void(int,int)> bfs=[&](int s,int c){
+function<void(int,int)> bfs=[&](int s,int c){
     queue<int> q;
     q.push(s);color[s]=c;
     while(q.size()){
@@ -424,7 +464,7 @@ fuction<void(int,int)> bfs=[&](int s,int c){
             }else if(color[v]==color[u])bio=0;
         }
     }
-}
+};
 //二分图判定
 
 using ULL=unsigned long long;
@@ -605,22 +645,26 @@ struct AC{
                 cnt[v]=-1;
             }
         }
+        return ans;
     }
+    void TopoQuery(const string& t){
+        fill(deg,deg+tot+1,0);
+        fill(sum,sum+tot+1,0);
+        int u=0;
+        for(char c:t){u=trie[u][c-'a'];sum[u]++;}
+        queue<int> q;
+        req(i,1,tot) deg[fail[i]]++;
+        req(i,1,tot) if(deg[i]==0) q.push(i);
+        while(q.size()){
+            int u=q.front();q.pop();
+            int v=fail[u]; sum[v]+=sum[u];
+            if(--deg[v]==0) q.push(v);
+        }
+        // sum[id[s]] 就是模式串 s 在 t 中的出现次数
+    }
+private:
+    int deg[MAXN],sum[MAXN];
 };
-int deg[MAXN], sum[MAXN];
-void TopoQuery(const string& t) {
-    int u=0;
-    for(char c:t) {u=trie[u][c-'a'];sum[u]++;}
-    queue<int> q;
-    req(i,1,tot) deg[fail[i]]++;
-    req(i,1,tot) if(deg[i]==0) q.push(i);
-    while (q.size()) {
-        int u=q.front(); q.pop();
-        int v=fail[u]; sum[v]+=sum[u];
-        if(--deg[v]==0) q.push(v);
-    }
-    // sum[id[s]] 就是模式串 s 在 t 中的出现次数
-}
 //AC自动机
 
 vector<int> primes,minp(n+1);
@@ -672,18 +716,17 @@ struct Mat{
         return I;
     }//单位矩阵
     Mat operator*(const Mat& b) const{
-        assert(n==b.n){
-            Mat res(n);
-            req(i,1,n){
-                req(k,1,n){
-                    if(a[i][k]==0) continue;
-                    req(j,1,n){
-                        res.a[i][j]=(res.a[i][j]+a[i][k]*b.a[k][j])%mod;
-                    }
+        assert(n==b.n);
+        Mat res(n);
+        req(i,1,n){
+            req(k,1,n){
+                if(a[i][k]==0) continue;
+                req(j,1,n){
+                    res.a[i][j]=(res.a[i][j]+a[i][k]*b.a[k][j])%mod;
                 }
             }
-            return res;
         }
+        return res;
     }//矩阵乘法
     Mat pow(ll exp)const{
         Mat res=identity(n);
@@ -797,18 +840,18 @@ struct Point{
 };
 
 db distToLine(const Point& p,const Point& a,const Point& b){
-    return fabs(cross(b-a,p-a))/(b-a).len();
+    return fabs((b-a).cross(p-a))/(b-a).len();
 }//点到直线距离
 bool onSegment(const Point& p,const Point& a,const Point& b){
-    return sgn(cross(a-p,b-p))==0 && sgn(dot(a-p,b-p))<=0;
+    return sgn((a-p).cross(b-p))==0 && sgn((a-p).dot(b-p))<=0;
 }//点是否在线段上
 
 bool intersect(const Point& a1, const Point& a2,
                const Point& b1, const Point& b2) {
-    auto d1=cross(b1-a1,a2-a1);
-    auto d2=cross(b2-a1,a2-a1);
-    auto d3=cross(a1-b1,b2-b1);
-    auto d4=cross(a2-b1,b2-b1);
+    auto d1=(b1-a1).cross(a2-a1);
+    auto d2=(b2-a1).cross(a2-a1);
+    auto d3=(a1-b1).cross(b2-b1);
+    auto d4=(a2-b1).cross(b2-b1);
     // 严格相交（不含端点）
     if (sgn(d1)*sgn(d2)<0 && sgn(d3)*sgn(d4)<0) return true;
     // 端点共线情况
@@ -823,7 +866,7 @@ db polygonArea(const vector<Point>& p){
     db s=0;
     int n=p.size();
     req(i,0,n-1)
-        s+=cross(p[i],p[(i+1)%n]);
+        s+=p[i].cross(p[(i+1)%n]);
     return fabs(s)/2;
 }//多边形面积
 
@@ -866,9 +909,9 @@ static inline int bit_width(int x) {
 #endif
 }
 
-LL exgcd(LL a, LL b, LL &x, LL &y){
+ll exgcd(ll a, ll b, ll &x, ll &y){
     if(!b){ x=1; y=0; return a; }
-    LL x1,y1,g=exgcd(b,a%b,x1,y1);
+    ll x1,y1,g=exgcd(b,a%b,x1,y1);
     x=y1; y=x1-(a/b)*y1;
     return g;
 }
@@ -876,11 +919,11 @@ LL exgcd(LL a, LL b, LL &x, LL &y){
 
 int diff[N],d[N][N];
 void add(int l,int r,int v){diff[l]+=v;diff[r+1]-=v;}
-void add(int x1,int y1,int x2,int y2,v){
-    d[x1][y1]+=v
-    d[x1][y2+1]-=v
-    d[x2+1][y1]-=v
-    d[x2+1][y2+1]+=v
+void add(int x1,int y1,int x2,int y2,int v){
+    d[x1][y1]+=v;
+    d[x1][y2+1]-=v;
+    d[x2+1][y1]-=v;
+    d[x2+1][y2+1]+=v;
 }
 int id=(i-1)*m+j,i=(id-1)/m+1,j=(id-1)%m+1;
 //差分
@@ -905,7 +948,7 @@ ll intervals(){
     res.pb(idx[0]);
     req(i,1,idx.size()-1){
         if(res.back().second>=idx[i].first){//根据题目考虑
-            res.back().second=max(res.back().second,idx[i].second)
+            res.back().second=max(res.back().second,idx[i].second);
         }else res.pb(idx[i]);
     }
     return (ll)res.size();
@@ -971,44 +1014,7 @@ fill(all(a),x)//初始化序列
 max/min_element(all(a))//找最值
 reverse(all(a))//反转
 to_string(int a)//数字转字符串
-sort(all(a));a.erase(unique(all(a), a.end());//去重
+sort(all(a));a.erase(unique(all(a)),a.end());//去重
 //fuck unordered_map...
 //常用函数
-
-#include <bits/stdc++.h>
-using namespace std;
-using ll = long long;
-using u64 = unsigned long long;
-
-#define req(i, a, n) for (int i = a; i <= n; ++i)
-#define rep(i,a,n) for(int i = a; i >= n; --i)
-#define all(a) a.begin(), a.end()
-#define rall(a) a.rbegin(), a.rend()
-#define pb push_back
-#define pii pair<int, int>
-//#define int long long
-
-const int mod=998244353,MOD=1e9+7,N=1e5+1,INF=1e18;
-int dx[]={0,1,0,-1},dy[]={1,0,-1,0};
-
-void solve() {
-    
-}
-
-signed main() {
-    #ifndef ONLINE_JUDGE
-        freopen("in.txt", "r", stdin);
-    #endif
-    ios::sync_with_stdio(0);
-    cin.tie(0), cout.tie(0);
-    int t = 1;
-    //cin >> t;
-    while (t--)
-        solve();
-    return 0;
-}
-
-//开火车
-
-```
 
