@@ -1,3 +1,4 @@
+```cpp
 int dist[N];
 void bfs(int s){
     memset(dist,-1,sizeof(dist));
@@ -139,7 +140,7 @@ bool spfa(int s){
     dist[s]=0;
     q.push(s);
     inq[s]=1;
-
+    
     while(q.size()){
         int u=q.front();q.pop();
         inq[u]=0;
@@ -904,7 +905,55 @@ ll intervals(){
     return (ll)res.size();
 }
 //区间合并
+```
 
+$$dp[i]=\sum_{j \in [l,r]} dp[j]$$
+
+```cpp
+vector<ll> pref(n+1);
+dp[0]=1;pref[0]=1;
+ll sum=0;
+int l=0;
+req(r,1,n){
+    sum+=a[r];
+    while(sum>limit) {
+        sum-=a[l+1];
+        l++;
+    }
+    //dp[r]=dp[l]+dp[l+1]+...+dp[r-1]
+    dp[r]=(pref[r-1]-(l>0?pref[l-1]:0)+MOD)%MOD;
+    pref[r]=(pref[r-1]+dp[r])%MOD;
+}
+//前缀和优化
+```
+
+$$dp[i] = \max_{j \in [i - k, i - 1]} (dp[j] + cost(j, i))$$
+
+```cpp
+int jump(vector<int>& nums) {
+    int n=nums.size();
+    vector<int> dp(n, N/2);
+    dp[0]=0;
+    deque<int> q;
+    q.push_back(0);
+    
+    req(i,1,n-1){
+        while (!q.empty() && q.front()+nums[q.front()]<i)
+            q.pop_front(); // 移除不可达的
+
+        if (!q.empty())
+            dp[i]=dp[q.front()]+1;
+        
+        while (!q.empty() && dp[i]<=dp[q.back()])
+            q.pop_back(); // 维护单调性
+        q.pb(i);
+    }
+    return dp[n-1];
+}
+//单调队列优化
+```
+
+```cpp
 getline(cin,s)//读取下一行到输入
 erase(pos,len)//删除从pos开始len个字符
 replace(pos,n,str)//将从pos开始到n个字符换成str
@@ -954,3 +1003,6 @@ signed main() {
 }
 
 //开火车
+
+```
+
