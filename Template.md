@@ -289,7 +289,6 @@ void dfs(int u){
     //回溯
 }
 
-//排列枚举
 int a[N],use[N],n;
 void dfs(int depth){
     if(depth==n){
@@ -305,6 +304,33 @@ void dfs(int depth){
         }
     }
 }
+//排列枚举
+
+bool found = false;
+    do {
+        if (check(a)) {
+            // 输出最小字典序，一找到就退出
+            for (int x : a) cout << x << " ";
+            cout << endl;
+            found = true;
+            break;
+        }
+    } while (next_permutation(a.begin(), a.end()));
+    if (!found) cout << -1 << endl;
+//枚举所有排列n<=10
+
+void dfs(int idx, int curW, int curV) {
+    //求最大价值选/不选
+    if (idx == n) {
+        if (curW <= W) best = max(best, curV);
+        return;
+    }
+    // 不选
+    dfs(idx + 1, curW, curV);
+    // 选
+    dfs(idx + 1, curW + w[idx], curV + v[idx]);
+}
+//枚举所有子集
 
 //树上遍历
 void dfsTree(int u,int fa){
