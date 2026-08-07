@@ -338,6 +338,29 @@ void dfsTree(int u,int fa){
     }
 }
 
+void dfs(int u, int f) {
+    dep[u] = dep[f] + 1;
+    fa[u][0] = f;
+    for (int i = 1; i <= 19; ++i)
+        fa[u][i] = fa[fa[u][i - 1]][i - 1];
+    for (int v : g[u])
+        if (v != f) dfs(v, u);
+}
+
+int lca(int u, int v) {
+    if (dep[u] < dep[v]) swap(u, v);
+    for (int i = 19; i >= 0; --i)
+        if (dep[fa[u][i]] >= dep[v])
+            u = fa[u][i];
+    if (u == v) return u;
+    for (int i = 19; i >= 0; --i)
+        if (fa[u][i] != fa[v][i]) {
+            u = fa[u][i];
+            v = fa[v][i];
+        }
+    return fa[u][0];
+}//LCA
+
 //子集生成
 int arr[N],n;
 vector<int> cur;
@@ -908,6 +931,26 @@ db polygonArea(const vector<Point>& p){
     return fabs(s)/2;
 }//多边形面积
 
+vector<Point> convexHull(vector<Point> pts) {
+    if (pts.size() <= 1) return pts;
+    sort(pts.begin(), pts.end());
+    vector<Point> hull(pts.size() + 1);
+    int k = 0;
+    // 下凸壳
+    for (const auto& p : pts) {
+        while (k >= 2 && cross(hull[k - 2], hull[k - 1], p) <= 0)
+            k--;
+        hull[k++] = p;
+    }
+    // 上凸壳
+    for (int i = (int)pts.size() - 2, t = k + 1; i >= 0; i--) {
+        while (k >= t && cross(hull[k - 2], hull[k - 1], pts[i]) <= 0)
+            k--;
+        hull[k++] = pts[i];
+    }
+    hull.resize(k - 1); // 去掉最后一个重复的起点
+    return hull;
+}//求凸包
 fixed<<setprecision(10)//精度控制
 
 (x >> k) & 1 //  获取 x 的第 k 位（从0开始）
