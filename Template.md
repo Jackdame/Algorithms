@@ -39,7 +39,6 @@ signed main() {
     return 0;
 }
 
-//开火车
 
 int dist[N];
 void bfs(int s){
@@ -728,6 +727,19 @@ ll qpow(ll a,ll b,ll mod){//模数为质数
     }
     return res;
 }
+
+ll CRT(int n,ll a[],ll m[]){
+    ll M=1,ans=0;
+    req(i,0,n-1)M*=m[i];
+    req(i,0,n-1){
+        ll Mi=M/m[i];
+        ll t,y;
+        exgcd(Mi,m[i],t,y);
+        ans=(ans+a[i]*Mi%M*t)%M;
+    }
+    return (ans%M+M)%M;
+}//中国剩余定理
+
 ll inv(ll a){return qpow(a,MOD-2,MOD);}
 //费马小定理求逆元
 
@@ -1029,6 +1041,7 @@ int jump(vector<int>& nums) {
 ```
 
 ```cpp
+cin.ignore();//清楚缓冲
 getline(cin,s)//读取下一行到输入
 erase(pos,len)//删除从pos开始len个字符
 replace(pos,n,str)//将从pos开始到n个字符换成str
@@ -1043,4 +1056,11 @@ to_string(int a)//数字转字符串
 sort(all(a));a.erase(unique(all(a)),a.end());//去重
 //fuck unordered_map...
 //常用函数
+vector<string> split(string s){
+    vector<string> ws;
+    stringstream ss(s);
+    string w;
+    while(ss>>w)ws.pb(w);
+    return ws;
+}//空格分割
 
