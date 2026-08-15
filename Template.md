@@ -191,7 +191,7 @@ bool spfa(int s){
         for(auto [v,w]:g[u]){
             if(dist[u]+w<dist[v]){
                 dist[v]=dist[u]+w;
-                cnt[v]++;
+                cnt[v]=cnt[u]+1;
                 if(cnt[v]>=n) return 0;
                 if(!inq[v]){
                     q.push(v);
@@ -209,10 +209,10 @@ struct DSU{
     int find(int x){return fa[x]==x?x:fa[x]=find(fa[x]);}
     bool unite(int a,int b){
         a=find(a),b=find(b);
-        if(a==b) return 0;
+        if(a==b) return 1;
         if(sz[a]<sz[b]) swap(a,b);
         fa[b]=a;sz[a]+=sz[b];
-        return 1;
+        return 0;
     }
 };
 
@@ -331,12 +331,12 @@ void dfs(int idx, int curW, int curV) {
 }
 //枚举所有子集
 
-//树上遍历
 void dfsTree(int u,int fa){
     for(int v:g[u]){
         if(v!=fa) dfsTree(v,u);
     }
 }
+//树上遍历
 
 void dfs(int u, int f) {
     dep[u] = dep[f] + 1;
@@ -545,10 +545,10 @@ int lcp(int i,int j){//二分求最长公共前缀
 vector<int> Next;
 void GetNext(const string& p){
     int len=p.size();
-    Next.resize(len);
+    Next.resize(len+1);
     int j=0,k=-1;
     Next[0]=-1;
-    while(j<len-1){
+    while(j<len){
         if(k==-1 || p[k]==p[j]){
             j++;k++;
             Next[j]=k;
@@ -577,8 +577,8 @@ vector<int> FindAllPos(const string& t,const string& p){//找所有出现位置
             i++;j++;
         }else j=Next[j];
         if(j==m){
-            pos.pb(i-j);
-            j=Next[j-1];
+            pos.pb(i-j+1);
+            j=Next[j];
         }
     }
     return pos;
@@ -898,6 +898,9 @@ struct Point{
     db cross(const Point& b) const{return x*b.y-y*b.x;}
     db dot(const Point& b) const{return x*b.x+y*b.y;}
     db len(){return hypot(x,y);}
+    bool operator<(const Point& b) const {
+        return sgn(x - b.x) ? x < b.x : y < b.y;
+    }
 };
 
 db distToLine(const Point& p,const Point& a,const Point& b){
@@ -1021,6 +1024,19 @@ vector<int> slide(const vector<int>& a,int k){
     return res;
 }
 //滑动窗口max/min
+
+vector<int> Rightelement(const vector<int>&a){
+    int n=a.size();
+    vector<int> res(n,-1);
+    stack<int> st;
+    for(int i=n-1;i>=0;--i){
+        while(st.size()&&st.top()<=a[i])st.pop();
+        if(st.size())res[i]=st.top();
+        st.push(a[i]);
+    }
+    return res;
+}
+//单调栈
 
 vector<pii> idx,res;
 static bool cmp(pii& a,pii& b){return a.first<b.first;}
