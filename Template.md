@@ -19,7 +19,7 @@ using u64 = unsigned long long;
 #define pii pair<int, int>
 //#define int long long
 
-const int mod=998244353,MOD=1e9+7,N=1e5+1,INF=1e18;
+const int mod=998244353,MOD=1e9+7,N=1e5+1;
 int dx[]={0,1,0,-1},dy[]={1,0,-1,0};
 
 void solve() {
@@ -40,7 +40,7 @@ signed main() {
 }
 
 
-int dist[N];
+long long dist[N];
 void bfs(int s){
     memset(dist,-1,sizeof(dist));
     queue<int> q;
@@ -107,6 +107,7 @@ int bfs01(int sx,int sy){
 }
 int d1[N][N],d2[N][N];
 int bibfs(int sx,int sy,int ex,int ey){
+    if(sx==ex && sy==ey) return 0;
     queue<pii> q1,q2;
     q1.push({sx,sy});
     q2.push({ex,ey});
@@ -116,29 +117,31 @@ int bibfs(int sx,int sy,int ex,int ey){
     d2[ex][ey]=0;
     while(q1.size() && q2.size()){
         if(q1.size()<=q2.size()){
-            auto [x,y]=q1.front();q1.pop();
-            req(i,0,3){
-                int nx=x+dx[i],ny=y+dy[i];
-                if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
-                if(d1[nx][ny]==-1){
-                    d1[nx][ny]=d1[x][y]+1;
-                    q1.push({nx,ny});
-                }
-                if(d2[nx][ny]!=-1){
-                    return d1[nx][ny]+d2[nx][ny];
+            int sz=q1.size();
+            while(sz--){
+                auto [x,y]=q1.front();q1.pop();
+                if(d2[x][y]!=-1) return d1[x][y]+d2[x][y];
+                req(i,0,3){
+                    int nx=x+dx[i],ny=y+dy[i];
+                    if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
+                    if(d1[nx][ny]==-1){
+                        d1[nx][ny]=d1[x][y]+1;
+                        q1.push({nx,ny});
+                    }
                 }
             }
         }else{
-            auto [x,y]=q2.front();q2.pop();
-            req(i,0,3){
-                int nx=x+dx[i],ny=y+dy[i];
-                if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
-                if(d2[nx][ny]==-1){
-                    d2[nx][ny]=d2[x][y]+1;
-                    q2.push({nx,ny});
-                }
-                if(d1[nx][ny]!=-1){
-                    return d1[nx][ny]+d2[nx][ny];
+            int sz=q2.size();
+            while(sz--){
+                auto [x,y]=q2.front();q2.pop();
+                if(d1[x][y]!=-1) return d1[x][y]+d2[x][y];
+                req(i,0,3){
+                    int nx=x+dx[i],ny=y+dy[i];
+                    if(nx<1 || nx>n || ny<1 || ny>m || g[nx][ny]=='*') continue;
+                    if(d2[nx][ny]==-1){
+                        d2[nx][ny]=d2[x][y]+1;
+                        q2.push({nx,ny});
+                    }
                 }
             }
         }
@@ -150,7 +153,7 @@ const long long INF=1e18;
 void dij(int s,vector<int>& pre){
     fill(dist,dist+N,INF);
     dist[s]=0;
-    priority_queue<pii,vector<pii>,greater<>> pq;
+    priority_queue<pair<ll,int>,vector<pair<ll,int>>,greater<pair<ll,int>>> pq;
     pq.push({0,s});//距离，点
     while(pq.size()){
         auto [d,u]=pq.top();pq.pop();
@@ -166,13 +169,14 @@ void dij(int s,vector<int>& pre){
 }
 
 void road(int s,int e,vector<int>& pre){
+    if(dist[e]==INF){cout<<"unreachable\n";return;}
     vector<int> ans;
     for(int cur=e;cur!=s;cur=pre[cur]){
         ans.pb(cur);
     }
     ans.pb(s);
     reverse(all(ans));
-    req(i,0,ans.size()-1) cout<<ans[i]<<" ";
+    req(i,0,(int)ans.size()-1) cout<<ans[i]<<" ";
 }
 //带路径回溯Dij
 bool spfa(int s){
@@ -225,7 +229,7 @@ int kruskal(int n,vector<Edge>& edges){
     DSU dsu(n);
     int cost=0,cnt=0;
     for(auto &e:edges){
-        if(dsu.unite(e.u,e.v)){
+        if(!dsu.unite(e.u,e.v)){
             cost+=e.w;
             if(++cnt==n-1) break;
         }
@@ -241,7 +245,7 @@ void unite(int a,int b){fa[find(a)]=find(b);}
 
 int dfn[N],low[N],timer,cnt,scc[N];
 stack<int> st;
-bool in[N];
+int in[N];
 void tarjan(int u){
     dfn[u]=low[u]=++timer;
     st.push(u);in[u]=1;
@@ -291,7 +295,7 @@ void dfs(int u){
 int a[N],use[N],n;
 void dfs(int depth){
     if(depth==n){
-        req(i,0,n-1) cout<<a[i]<<((i==n-1)?'\n':" ");
+        req(i,0,n-1) cout<<a[i]<<((i==n-1)?"\n":" ");
         return;
     }
     req(i,1,n){
@@ -424,7 +428,7 @@ struct SegTree{
     int n;
     struct Node{ll sum,lazy;};
     vector<Node> t;
-    SegTree(int n):n(n),t(4*n+4){}
+    SegTree(int size):n(size),t(4*n+4){}
     void build(const vector<ll>& arr){
         build(1,1,n,arr);
     }
@@ -433,6 +437,7 @@ struct SegTree{
         if(r==-1) r=n;
         if(L>r || R<l) return;
         if(L<=l && r<=R){apply(o,l,r,v);return;}
+        //if(l==r){t[o].sum+=v;return;}
         pushdown(o,l,r);
         int mid=(l+r)>>1;
         update(L,R,v,o*2,l,mid);
@@ -448,7 +453,7 @@ struct SegTree{
         int mid=(l+r)>>1;
         return query(L,R,o*2,l,mid)+query(L,R,o*2+1,mid+1,r);
      }
-private:
+private://lazy_tag
     void pushup(int o){ t[o].sum=t[o*2].sum+t[o*2+1].sum; }
     void pushdown(int o,int l,int r){
         if(!t[o].lazy) return;
@@ -463,7 +468,7 @@ private:
     }
     void build(int o,int l,int r,const vector<ll>& arr){
         if(l==r){
-            t[o].sum=arr[l-1];
+            t[o].sum=arr[l];
             return;
         }
         int mid=(l+r)>>1;
@@ -485,7 +490,7 @@ struct Compare{
         return get<1>(a) > get<1>(b);
     }
 };
-auto type=tuple<int,int>;
+using type=tuple<int,int>;
 priority_queue<type,vector<type>,Compare> pq;
 
 int l=1,r=n,ans=n;
@@ -507,7 +512,7 @@ function<void(int,int)> bfs=[&](int s,int c){
         int u=q.front();q.pop();
         for(int v:g[u]){
             if(color[v]==-1){
-                color[v]=c^^1;
+                color[v]=color[u]^1;
                 q.push(v);
             }else if(color[v]==color[u])bio=0;
         }
@@ -763,7 +768,7 @@ ll CRT(int n,ll a[],ll m[]){
     return (ans%M+M)%M;
 }//中国剩余定理
 
-ll inv(ll a){return qpow(a,MOD-2,MOD);}
+ll inv(ll a){return qpow(a,mod-2,mod);}
 //费马小定理求逆元
 
 const int N=260;//最大矩阵边长
@@ -783,7 +788,7 @@ struct Mat{
             req(k,1,n){
                 if(a[i][k]==0) continue;
                 req(j,1,n){
-                    res.a[i][j]=(res.a[i][j]+a[i][k]*b.a[k][j])%mod;
+                    res.a[i][j]=(res.a[i][j]+1LL*a[i][k]*b.a[k][j])%mod;
                 }
             }
         }
@@ -903,6 +908,10 @@ struct Point{
     }
 };
 
+db cross(const Point& a,const Point& b,const Point& c){
+    return (b-a).cross(c-a);
+}//三点叉积
+
 db distToLine(const Point& p,const Point& a,const Point& b){
     return fabs((b-a).cross(p-a))/(b-a).len();
 }//点到直线距离
@@ -987,9 +996,9 @@ while (sub < (1 << n)) {
 static inline int bit_width(int x) {
 #if defined(_MSC_VER)
     unsigned long index;
-    return _BitScanReverse64(&index, x) ? (int)(index + 1) : 0;
+    return _BitScanReverse(&index, (unsigned long)x) ? (int)(index + 1) : 0;
 #else
-    return x ? (int)(sizeof(int) * 8 - __builtin_clzll(x)) : 0;
+    return x ? (int)(sizeof(int) * 8 - __builtin_clz(x)) : 0;
 #endif
 }
 
@@ -1041,9 +1050,11 @@ vector<int> Rightelement(const vector<int>&a){
 vector<pii> idx,res;
 static bool cmp(pii& a,pii& b){return a.first<b.first;}
 ll intervals(){
+    if(idx.empty()) return 0;
     sort(all(idx),cmp);
+    res.clear();
     res.pb(idx[0]);
-    req(i,1,idx.size()-1){
+    req(i,1,(int)idx.size()-1){
         if(res.back().second>=idx[i].first){//根据题目考虑
             res.back().second=max(res.back().second,idx[i].second);
         }else res.pb(idx[i]);
@@ -1090,7 +1101,8 @@ int jump(vector<int>& nums) {
         if (!q.empty())
             dp[i]=dp[q.front()]+1;
         
-        while (!q.empty() && dp[i]<=dp[q.back()])
+        while (!q.empty() && dp[q.back()] >= dp[i] &&
+               q.back() + nums[q.back()] <= i + nums[i])
             q.pop_back(); // 维护单调性
         q.pb(i);
     }
@@ -1122,4 +1134,3 @@ vector<string> split(string s){
     while(ss>>w)ws.pb(w);
     return ws;
 }//空格分割
-
