@@ -342,6 +342,30 @@ void dfsTree(int u,int fa){
 }
 //树上遍历
 
+
+void dfs(int u, int fa) {
+  for (int v : E[u]) {
+    if (v == fa) continue;
+    dfs(v, u);
+    d = max(d, dp[u] + dp[v] + w[{u,v}]);
+    dp[u] = max(dp[u], dp[v] + w[{u,v}]);
+  }
+}//求直径
+
+void dfs(int cur,int fa){
+	siz[cur]=1;
+	w[cur]=0;
+	for(int v:g[cur]){
+		if(v!=fa){
+			dfs(v,cur);
+			siz[cur]+=siz[v];
+			w[cur]=max(w[cur],siz[v]);
+		}
+	}
+	w[cur]=max(w[cur],n-siz[cur]);
+	if(w[cur]<=n/2)ans.pb(cur);
+}//求重心
+
 void dfs(int u, int f) {
     dep[u] = dep[f] + 1;
     fa[u][0] = f;
@@ -1062,6 +1086,64 @@ ll intervals(){
     return (ll)res.size();
 }
 //区间合并
+
+ll dp[20][状态...];
+int d[20], len;
+
+ll dfs(int pos, bool limit, bool lead,/* 附加状态 */){
+    if (pos==0) return /* ①叶子答案：计数型=1，出现次数型=cnt，求和型=sum */;
+    if (!limit&&!lead&&dp[pos][状态]!=-1) return dp[pos][状态];
+    int up=limit?d[pos]:9;
+    ll res=0;
+    req(i,0,up){
+        if(/* ②剪枝条件，前导零时通常不检查 */) continue;
+        res+=dfs(pos-1,
+                limit&&(i==up),      // ③贴边状态：选了上限这一位才继续贴
+                lead&&(i==0),        // ④前导零状态：还是 0 就继续 lead
+                /* ⑤新附加状态 */);
+    }
+    if (!limit&&!lead) dp[pos][状态]=res;
+    return res;
+}
+
+ll solve(ll x){
+    len=0;while(x){d[++len]=x%10;x/=10;}
+    memset(dp,-1,sizeof dp);
+    return dfs(len,1,1);
+}
+// ans = solve(R) - solve(L - 1)
+//数位dp
+
+vector<int> d;
+for (int x : a) {
+    auto it = lower_bound(d.begin(), d.end(), x);
+    if (it == d.end()) d.push_back(x);//证明比所有数都大，增加进数组
+    else *it = x;//否则替换成x
+}
+int ans = d.size();//nlogn求最长子序列
+
+
+
+```
+
+$$
+dp[l][r] = \max_{k \in [l, r-1]} (dp[l][k] + dp[k+1][r] + \text{cost}(l,r,k))
+$$
+
+```cpp
+// 初始化：长度为1的区间
+for (int i = 1; i <= n; i++) dp[i][i] = init;
+
+// 枚举区间长度
+for (int len = 2; len <= n; len++) {
+    for (int l = 1; l + len - 1 <= n; l++) {
+        int r = l + len - 1;
+        dp[l][r] = INF; // 或 -INF
+        for (int k = l; k < r; k++) {
+            dp[l][r] = max(dp[l][r], dp[l][k] + dp[k+1][r] + cost(l, r, k));
+        }
+    }
+}
 ```
 
 $$dp[i]=\sum_{j \in [l,r]} dp[j]$$
@@ -1111,6 +1193,32 @@ int jump(vector<int>& nums) {
 //单调队列优化
 ```
 
+$$dp[i] = \max_{j < i, \, a_j < a_i} dp[j] + 1$$
+
+```cpp
+// 树状数组维护前缀最大值
+int BIT[MAXV];
+
+void update(int x, int val) {
+    for (; x <= maxv; x += x & -x)
+        BIT[x] = max(BIT[x], val);
+}
+
+int query(int x) {
+    int res = 0;
+    for (; x > 0; x -= x & -x)
+        res = max(res, BIT[x]);
+    return res;
+}
+
+// 对每个 a[i] 做离散化
+for (int i = 1; i <= n; i++) {
+    int best = query(a[i] - 1);
+    dp[i] = best + 1;
+    update(a[i], dp[i]);
+}//数据结构优化
+```
+
 ```cpp
 cin.ignore();//清楚缓冲
 getline(cin,s)//读取下一行到输入
@@ -1125,6 +1233,8 @@ max/min_element(all(a))//找最值
 reverse(all(a))//反转
 to_string(int a)//数字转字符串
 sort(all(a));a.erase(unique(all(a)),a.end());//去重
+multiset<int> s(all(a));
+s.lower_bound(x);s.erase();s.insert();
 //fuck unordered_map...
 //常用函数
 vector<string> split(string s){
